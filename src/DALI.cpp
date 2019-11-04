@@ -117,57 +117,69 @@ void DALI::withdrawNode(uint32_t addr)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-int DALI::searchNodes(uint32_t* addresses, uint8_t numAddresses)
+int DALI::initNodes(const uint8_t* addresses, uint8_t numAddresses)
 {
-	uint32_t searchAddr;
 	uint32_t searchLower;
 	uint32_t searchDifference;
+	uint32_t searchTop;
 
 	int ret = 0;
+
+	// Reinicia los modulos
+	sendCommand(COMMAND_BROADCAST, RESET);
+	delay(10);
+	sendCommand(COMMAND_BROADCAST, RESET);
+	delay(300);
+
+	// Termina con todos los nodos que puedan estar en configuración
+	sendCommand(TERMINATE, 0);
+	delay(100);
+
+	// Reinicia los modulos
+	sendCommand(INITIALISE, 0);
+	delay(10);
+	sendCommand(INITIALISE, 0);
+	delay(200);
+
+	// Pone a una dirección aleatoria los nodos
+	sendCommand(RANDOMISE, 0);
+	delay(10);
+	sendCommand(RANDOMISE, 0);
+	delay(200);
+
 	while(1)
 	{
-		searchAddr = 0xFFFFFF;
-		// Mientras encontremos que alguien nos responde
-		while (sendSearchAddr(searchAddr))
-		{
-			// Si hay algún nodo que tiene el numero 0, no lo aceptaremos
-			if (searchAddr == 0)
-			{
-				return ret;
-			}
-			searchAddr >>= 1;
-			searchAddr &= 0xFFFFFF;
-		}
+		searchLower = 0;
+		searchDifference = 0xFFFFFF;
+		searchTop = 0xFFFFFF;
 
-		// Si detectamos que ya no nos responde nadie, acabar la función
-		if (searchAddr == 0xFFFFFF)
-		{
-			break;
-		}
-
-		// A partir de ahora tenemos que buscar entre el numero actual
-		// y el numero anterior
-		searchLower = searchAddr;
-		searchDifference = (searchAddr << 1) - searchLower;
-		while( searchDifference != 0)
-		{
-			while (sendSearchAddr(searchLower+searchDifference))
-			{
+		while(searchDifference >1){
+			while(sendSearchAddr(searchDifference+searchLower)){
+				searchTop = searchDifference+searchLower;
+				if(!searchDifference)
+					break;
 				searchDifference >>= 1;
 			}
-			searchLower = searchLower+searchDifference;
-			searchDifference <<= 1;
+			if(searchDifference == 0xFFFFFF)
+				return ret;
+			searchLower += searchDifference;
+			searchDifference = searchTop - searchLower;
 		}
-		withdrawNode(searchLower+1);
-		*addresses++ = searchLower+1;
-		ret++;
 
-		if (ret == numAddresses) {
-			break;
+		if(sendSearchAddr(searchDifference+searchLower))
+		{
+			if(!sendProgramShortAddr(*addresses++))
+				return 0;
+			withdrawNode(searchDifference+searchLower);
+
+			if((sendSearchAddr(searchDifference+searchLower) | (searchDifference+searchLower)) == 0xFFFFFF)
+				return 0;
+			ret++;
+			if(ret == numAddresses)
+				return ret;
 		}
 	}
-
-	return ret;
+	return 0;
 }
 
 // Función que sirve para que un nodo se ponga a una potencia concreta
@@ -191,6 +203,8 @@ void DALI::setValue(uint8_t nodeNumber, uint8_t value)
 // Recordar que "nodeNumber" puede ser como maximo el numero 63 (decimal)
 bool DALI::sendProgramShortAddr(uint8_t nodeNumber)
 {
+	nodeNumber &= 0x3F;
+
 	// Enviamos la orden de programar la short address seleccionada
 	sendCommand(PROGRAM_SHORT_ADDRESS, 1 | (nodeNumber << 1));
 	delay(20);
@@ -210,32 +224,4 @@ bool DALI::sendProgramShortAddr(uint8_t nodeNumber)
 	}
 	delay(20);
 	return false;
-}
-
-// Función de inicializar los nodos del bus DALI
-// Esta función REINICIA todo el bus DALI. Tener en mente por si se ejecuta en
-// un bus donde ya se encuentren dispositivos configurados
-void DALI::initNodes(void)
-{
-	// Reinicia los modulos
-	sendCommand(COMMAND_BROADCAST, RESET);
-	delay(10);
-	sendCommand(COMMAND_BROADCAST, RESET);
-	delay(300);
-
-	// Termina con todos los nodos que puedan estar en configuración
-	sendCommand(TERMINATE, 0);
-	delay(100);
-
-	// Reinicia los modulos
-	sendCommand(INITIALISE, 0);
-	delay(10);
-	sendCommand(INITIALISE, 0);
-	delay(200);
-
-	// Pone a una dirección aleatoria los nodos
-	sendCommand(RANDOMISE, 0);
-	delay(10);
-	sendCommand(RANDOMISE, 0);
-	delay(200);
 }

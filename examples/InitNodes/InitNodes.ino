@@ -2,21 +2,21 @@
    Copyright (c) 2019 Boot&Work Corp., S.L. All rights reserved
 */
 
-#include <DALI.h>
+#include "DALI.h"
 
+// DALI interface
 DALI dali(2, 3);
+
+// List of addresses to assign to the connected DALI devices
+const uint8_t addresses[] = { 6, 7, 18, 34 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
   Serial.begin(9600UL);
-
   dali.begin();
-  Serial.println("Initialize DALI nodes...");
-  dali.initNodes();
 
-  Serial.println("Search DALI nodes...");
-  uint32_t addresses[64];
-  int numAddresses = dali.searchNodes(addresses, 64);
+  Serial.println("Initialize DALI nodes...");
+  int numAddresses = dali.initNodes(addresses, 64);
 
   Serial.println("Found nodes:");
   for (int i = 0; i < numAddresses; ++i) {

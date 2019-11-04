@@ -7,7 +7,7 @@
 DALI dali(2, 3);
 
 uint8_t value = 0;
-uint32_t lastChangeTime = millis();
+uint32_t lastStepTime = millis();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
@@ -24,7 +24,7 @@ void loop() {
       value = 0;
     }
 
-    dali.setValue(0, value);
+    dali.setValue(6, value);
 
     lastStepTime = millis();
   }
