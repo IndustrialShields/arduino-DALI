@@ -51,6 +51,11 @@ void DALI::sendOne(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void DALI::sendCommand(uint8_t command, uint8_t data)
 {
+	static uint32_t lastSendTime = 0UL;
+	while (millis() - lastSendTime < 20UL) {
+		delay(1);
+	}
+
 	uint16_t info = (uint16_t)((command << 8) | data);
 
 	// Enviamos el bit de start
@@ -66,6 +71,8 @@ void DALI::sendCommand(uint8_t command, uint8_t data)
 	}
 	digitalWrite(txPin, LOW);
 	delayMicroseconds(1700);
+
+	lastSendTime = millis();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -73,14 +80,10 @@ bool DALI::sendSearchAddr(uint32_t addr)
 {
 	// Enviamos la address high
 	sendCommand(SEARCHADDRH, (addr >> 16) & 0xFF);
-	delay(20);
 	// Enviamos la address mid
 	sendCommand(SEARCHADDRM, (addr >> 8) & 0xFF);
-	delay(20);
 	// Enviamos la address low
 	sendCommand(SEARCHADDRL, addr & 0xFF);
-	delay(20);
-
 	// Enviamos un compare
 	sendCommand(COMPARE, 0);
 
@@ -94,7 +97,6 @@ bool DALI::sendSearchAddr(uint32_t addr)
 		}
 		delayMicroseconds(1);
 	}
-	delay(20);
 	return false;
 }
 
@@ -103,17 +105,12 @@ void DALI::withdrawNode(uint32_t addr)
 {
 	// Enviamos la address high
 	sendCommand(SEARCHADDRH, (addr >> 16) & 0xFF);
-	delay(20);
 	// Enviamos la address mid
 	sendCommand(SEARCHADDRM, (addr >> 8) & 0xFF);
-	delay(20);
 	// Enviamos la address low
 	sendCommand(SEARCHADDRL, addr & 0xFF);
-	delay(20);
-
 	// Enviamos un compare
 	sendCommand(WITHDRAW, 0);
-	delay(20);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,12 +186,23 @@ int DALI::initNodes(const uint8_t* addresses, uint8_t numAddresses)
 // Tener en mente que el numero maximo de "power" és 254
 void DALI::setValue(uint8_t nodeNumber, uint8_t value)
 {
-	if (value > 254) {
-		return;
+	if (value == 0) {
+		return turnOff(nodeNumber);
+	} else if (value == 255) {
+		setMax(nodeNumber);
+	} else {
+		sendCommand(SHORT_POWER | ((nodeNumber << 1) & 0x7e), value);
 	}
+}
 
-	sendCommand(SHORT_POWER | (nodeNumber << 1) , value);
-	delay(20);
+void DALI::turnOff(uint8_t nodeNumber)
+{
+	sendCommand(SHORT_POWER | ((nodeNumber << 1) & 0x7e) | 0x01, 0x00);
+}
+
+void DALI::setMax(uint8_t nodeNumber)
+{
+	sendCommand(SHORT_POWER | ((nodeNumber << 1) & 0x7e) | 0x01, 0x05);
 }
 
 // Función que sirve para programar el nodo con una short addr
@@ -207,7 +215,6 @@ bool DALI::sendProgramShortAddr(uint8_t nodeNumber)
 
 	// Enviamos la orden de programar la short address seleccionada
 	sendCommand(PROGRAM_SHORT_ADDRESS, 1 | (nodeNumber << 1));
-	delay(20);
 
 	// Enviamos la orden de que nos responda la short address que acabamos de programar
 	sendCommand(VERIFY_SHORT_ADDRESS, 1 | (nodeNumber << 1));
@@ -222,6 +229,5 @@ bool DALI::sendProgramShortAddr(uint8_t nodeNumber)
 		}
 		delayMicroseconds(1);
 	}
-	delay(20);
 	return false;
 }

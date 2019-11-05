@@ -33,6 +33,9 @@ class DALI {
 	public:
 		void begin();
 		int initNodes(const uint8_t* addresses, uint8_t numAddresses);
+
+		void turnOff(uint8_t nodeAddress);
+		void setMax(uint8_t nodeAddress);
 		void setValue(uint8_t nodeAddress, uint8_t value);
 
 	private:

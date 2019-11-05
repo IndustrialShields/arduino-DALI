@@ -5,10 +5,10 @@
 #include "DALI.h"
 
 // DALI interface
-DALI dali(2, 3);
+DALI dali(18, 19);
 
 // List of addresses to assign to the connected DALI devices
-const uint8_t addresses[] = { 6, 7, 18, 34 };
+const uint8_t addresses[] = { 10, 7, 18, 34 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
