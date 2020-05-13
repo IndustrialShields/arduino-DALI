@@ -222,7 +222,7 @@ bool DALI::sendProgramShortAddr(uint8_t nodeNumber)
 	// Esperamos una respuesta
 	for ( uint32_t n = 0 ; n < 50000 ; n++ )
 	{
-		if (digitalRead(DALI_RX))
+		if (digitalRead(rxPin))
 		{
 			delay(20);
 			return true;

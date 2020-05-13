@@ -3,9 +3,6 @@
 
 #include <Arduino.h>
 
-const int DALI_TX = 18;
-const int DALI_RX = 19;
-
 class DALI {
 	private:
 		enum {
@@ -28,11 +25,16 @@ class DALI {
 		};
 
 	public:
+#if defined(DALI_TX) && defined(DALI_RX)
+		explicit DALI(int txPin = DALI_TX, int rxPin = DALI_RX);
+#else
 		explicit DALI(int txPin, int rxPin);
+#endif
 
 	public:
 		void begin();
 		int initNodes(const uint8_t* addresses, uint8_t numAddresses);
+		int initNodes(uint8_t address);
 
 		void turnOff(uint8_t nodeAddress);
 		void setMax(uint8_t nodeAddress);

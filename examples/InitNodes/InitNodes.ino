@@ -8,7 +8,8 @@
 DALI dali(18, 19);
 
 // List of addresses to assign to the connected DALI devices
-const uint8_t addresses[] = { 10, 7, 18, 34 };
+const uint8_t addresses[] = { 10, 11, 12, 13, 14 };
+const int maxAddresses = sizeof(addresses) / sizeof(uint8_t);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
@@ -16,7 +17,7 @@ void setup() {
   dali.begin();
 
   Serial.println("Initialize DALI nodes...");
-  int numAddresses = dali.initNodes(addresses, 64);
+  int numAddresses = dali.initNodes(addresses, maxAddresses);
 
   Serial.println("Found nodes:");
   for (int i = 0; i < numAddresses; ++i) {
