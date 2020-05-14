@@ -4,7 +4,7 @@
 ## by [Industrial Shields](https://www.industrialshields.com/automation-solutions-based-on-arduino-industrial-plc-raspberry-pi-panel-pc)
 
 
- Arduino-DALI Library implements DALI communication protocol in the **Ardbox-DALI and M-Duino-DALI family controllers** based on Arduino.
+ Arduino-DALI Library implements DALI communication protocol in the **M-Duino-DALI family controllers** based on Arduino.
 
 
 ### Getting Started
